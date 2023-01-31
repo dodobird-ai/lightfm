@@ -174,7 +174,7 @@ setup(
     download_url="https://github.com/lyst/lightfm/tarball/{}".format(read_version()),
     packages=["lightfm", "lightfm.datasets"],
     package_data={"": ["*.c"]},
-    install_requires=["numpy", "scipy>=0.17.0", "requests", "scikit-learn"],
+    install_requires=["numpy>=1.19,<1.20", "scipy>=0.17.0", "requests", "scikit-learn"],
     tests_require=["pytest", "requests", "scikit-learn"],
     cmdclass={"cythonize": Cythonize, "clean": Clean},
     author="Lyst Ltd (Maciej Kula)",
