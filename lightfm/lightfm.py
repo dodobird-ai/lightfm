@@ -2,6 +2,8 @@
 from __future__ import print_function
 
 import numpy as np
+from lightfm.evaluation import auc_score, precision_at_k,recall_at_k
+
 
 import scipy.sparse as sp
 
@@ -767,6 +769,20 @@ class LightFM(object):
             )
 
         self.avg_loss.append(lightfm_data.avg_loss)
+        print(self.avg_loss)
+
+        # score = auc_score(
+        #     self,
+        #     test_interactions=interactions,
+        #     train_interactions=None,
+        #     user_features=user_features,
+        #     item_features=item_features,
+        #     preserve_rows=False,
+        #     num_threads=num_threads,
+        #     check_intersections=True,
+        # )
+        # print(score.mean())
+        # print(np.median(score))
 
     def predict(
         self, user_ids, item_ids, item_features=None, user_features=None, num_threads=1
