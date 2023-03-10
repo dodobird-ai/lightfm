@@ -2,8 +2,10 @@
 from __future__ import print_function
 
 import numpy as np
+# from omegaconf import OmegaConf
+from dvclive import Live
+# from dodobird_recsys.models.evaluate import evaluate
 from lightfm.evaluation import auc_score, precision_at_k,recall_at_k
-
 
 import scipy.sparse as sp
 
@@ -22,6 +24,7 @@ __all__ = ["LightFM"]
 
 CYTHON_DTYPE = np.float32
 
+# dodobird_conf = OmegaConf.load("../../../params.yaml")
 
 class LightFM(object):
     """
@@ -660,17 +663,48 @@ class LightFM(object):
 
         if num_threads < 1:
             raise ValueError("Number of threads must be 1 or larger.")
+        
+        with Live() as dvc_live:
 
-        for _ in self._progress(epochs, verbose=verbose):
-            self._run_epoch(
-                item_features,
-                user_features,
-                interactions,
-                sample_weight_data,
-                num_threads,
-                self.loss,
-            )
+            for epoch in self._progress(epochs, verbose=verbose):
+                self._run_epoch(
+                    item_features,
+                    user_features,
+                    interactions,
+                    sample_weight_data,
+                    num_threads,
+                    self.loss,
+                )
 
+                epoch_loss = self.avg_loss[-1]
+                dvc_live.log_metric('loss', epoch_loss)
+                print(f"Epoch n. {epoch} loss = {epoch_loss}")
+                # TODO EVAL
+                # if epoch % 10 == 0: 
+                    # results = evaluate(self, metrics, data, params, logger=logger)
+
+                    # # SAVE / SERIALIZE 
+                    # logger.info('Saving model performance metrics')
+                    
+                    # # LOGGING METRICS WITH DVC LIVE 
+                    #     for metric_name, phases_and_values in results.items(): 
+                    #         for eval_phase, value in phases_and_values.items():
+                    #             live.log_metric(f"{metric_name}-{eval_phase}", value)
+                    # score = auc_score(self,
+            #     test_interactions=interactions,
+            #     train_interactions=None,
+            #     user_features=user_features,
+            #     item_features=item_features,
+            #     preserve_rows=False,
+            #     num_threads=num_threads,
+            #     check_intersections=True,
+            # )
+            # print(score.mean())
+            # print(np.median(score))
+
+            # TODO Store Model
+
+            dvc_live.next_step()
             self._check_finite()
 
         return self
@@ -769,7 +803,8 @@ class LightFM(object):
             )
 
         self.avg_loss.append(lightfm_data.avg_loss)
-        print(self.avg_loss)
+        # MARC COMMENTS => MOVE IN THE LOOP
+        # print(self.avg_loss)
 
         # score = auc_score(
         #     self,
