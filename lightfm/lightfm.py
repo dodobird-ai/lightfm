@@ -681,6 +681,7 @@ class LightFM(object):
                 print(f"Epoch n. {epoch} loss = {epoch_loss}")
                 # TODO EVAL
                 # if epoch % 10 == 0: 
+                    ## evaluate is 'our' / dodobird_recsys func. CIRCULAR REFERENCE PROBLEM. (circumvent with import in / from a 3rd file ???)
                     # results = evaluate(self, metrics, data, params, logger=logger)
 
                     # # SAVE / SERIALIZE 
