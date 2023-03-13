@@ -1350,6 +1350,7 @@ def calculate_auc_from_rank(CSRMatrix ranks,
             row_start = ranks.get_row_start(user_id)
             row_stop = ranks.get_row_end(user_id)
 
+            # Since ranks is a sparce matrix, it only constains positived hence the computation below
             num_positives = row_stop - row_start
             num_negatives = ranks.cols - ((row_stop - row_start) + num_train_positives[user_id])
 
