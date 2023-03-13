@@ -87,6 +87,7 @@ class LightFM(object):
         initial learning rate for the adagrad learning schedule.
     rho: float, optional
         moving average coefficient for the adadelta learning schedule.
+        (MARC's note from keras doc: continual decay rate of learning rates throughout training)
     epsilon: float, optional
         conditioning parameter for the adadelta learning schedule.
     item_alpha: float, optional
@@ -202,7 +203,7 @@ class LightFM(object):
         learning_schedule="adagrad",
         loss="logistic",
         learning_rate=0.05,
-        rho=0.95,
+        rho=0.95, # continual decay rate of learning rates throughout training
         epsilon=1e-6,
         item_alpha=0.0,
         user_alpha=0.0,
@@ -232,7 +233,7 @@ class LightFM(object):
         self.k = int(k)
         self.n = int(n)
 
-        self.rho = rho
+        self.rho = rho #  continual decay rate of learning rates throughout training
         self.epsilon = epsilon
         self.max_sampled = max_sampled
 
@@ -450,7 +451,7 @@ class LightFM(object):
             self.no_components,
             int(self.learning_schedule == "adadelta"),
             self.learning_rate,
-            self.rho,
+            self.rho, # continual decay rate of learning rates throughout training
             self.epsilon,
             self.max_sampled,
         )
@@ -1133,8 +1134,8 @@ class LightFM(object):
             "learning_rate": self.learning_rate,
             "k": self.k,
             "n": self.n,
-            "rho": self.rho,
-            "epsilon": self.epsilon,
+            "rho": self.rho, # continual decay rate of learning rates throughout training.
+            "epsilon": self.epsilon, # Small floating point value used to maintain numerical stability. 
             "max_sampled": self.max_sampled,
             "item_alpha": self.item_alpha,
             "user_alpha": self.user_alpha,
