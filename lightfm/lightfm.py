@@ -695,17 +695,8 @@ class LightFM(object):
                 dvc_live.log_metric('loss', epoch_loss)
                 print(f"Epoch n. {epoch} loss = {epoch_loss}")
                 
-                for eval_name, eval_func in epoch_eval_funcs.items():
-                    if epoch % round(epochs * 0.1) == 0: 
-                        avg_eval_score = eval_func(self, 
-                                               test_interactions=interactions, 
-                                               train_interactions=None, 
-                                               user_features=user_features, 
-                                               item_features=item_features, 
-                                               preserve_rows=False, 
-                                               num_threads=4,  # MARC hardcode... trying to see if it also poses reproducibility problems... 
-                                               check_intersections=True)\
-                                            .mean()
+                        if epoch % max(round(epochs * 0.1), 1) == 0: 
+                            avg_eval_score = eval_func(self, 
 
                         metrics[eval_name] = avg_eval_score
                         print(f"Epoch n. {epoch} {eval_name} = {avg_eval_score}")
