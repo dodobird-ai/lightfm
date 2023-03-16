@@ -2,9 +2,11 @@
 from __future__ import print_function
 
 import numpy as np
+
 # from omegaconf import OmegaConf
 from dvclive import Live
-# from dodobird_recsys.models.evaluate import evaluate
+from pathlib import Path
+from dodobird_recsys.data.loaders import load_eval_data
 from lightfm.evaluation import auc_score, precision_at_k,recall_at_k
 
 import scipy.sparse as sp
@@ -665,6 +667,18 @@ class LightFM(object):
         if num_threads < 1:
             raise ValueError("Number of threads must be 1 or larger.")
         
+        epoch_eval_funcs = {
+            'auc': auc_score,
+            'p@k': precision_at_k, 
+            'r@k': recall_at_k
+        }
+        
+        inputs_files = ['train.pkl', 'train_weights.pkl', 'dataset.pkl']
+        inputs_dir = Path('data/pipeline_only/04-processed')
+
+        data_for_eval = load_eval_data(inputs_files, inputs_dir)
+        metrics = {}
+
         with Live() as dvc_live:
 
             for epoch in self._progress(epochs, verbose=verbose):
@@ -680,31 +694,27 @@ class LightFM(object):
                 epoch_loss = self.avg_loss[-1]
                 dvc_live.log_metric('loss', epoch_loss)
                 print(f"Epoch n. {epoch} loss = {epoch_loss}")
-                # TODO EVAL
-                # if epoch % 10 == 0: 
-                    ## evaluate is 'our' / dodobird_recsys func. CIRCULAR REFERENCE PROBLEM. (circumvent with import in / from a 3rd file ???)
-                    # results = evaluate(self, metrics, data, params, logger=logger)
+                
+                for eval_name, eval_func in epoch_eval_funcs.items():
+                    if epoch % round(epochs * 0.1) == 0: 
+                        print(f'Computating Evaluation Score for: {eval_name}: Takes Some Time')
+                        avg_eval_score = eval_func(self, 
+                                               test_interactions=interactions, 
+                                               train_interactions=None, 
+                                               user_features=user_features, 
+                                               item_features=item_features, 
+                                               preserve_rows=False, 
+                                               num_threads=4,  # MARC hardcode... trying to see if it also poses reproducibility problems... 
+                                               check_intersections=True)\
+                                            .mean()
 
-                    # # SAVE / SERIALIZE 
-                    # logger.info('Saving model performance metrics')
-                    
-                    # # LOGGING METRICS WITH DVC LIVE 
-                    #     for metric_name, phases_and_values in results.items(): 
-                    #         for eval_phase, value in phases_and_values.items():
-                    #             live.log_metric(f"{metric_name}-{eval_phase}", value)
-                    # score = auc_score(self,
-            #     test_interactions=interactions,
-            #     train_interactions=None,
-            #     user_features=user_features,
-            #     item_features=item_features,
-            #     preserve_rows=False,
-            #     num_threads=num_threads,
-            #     check_intersections=True,
-            # )
-            # print(score.mean())
-            # print(np.median(score))
+                        metrics[eval_name] = avg_eval_score
+                        print(f"Epoch n. {epoch} {eval_name} = {avg_eval_score}")
+                    else: 
+                        avg_eval_score = metrics[eval_name] # keep as previous, so that dvc_live steps are aligned to epochs but without excessive computations
+                    dvc_live.log_metric(eval_name, avg_eval_score)
 
-            # TODO Store Model
+                # TODO Store Model
 
             dvc_live.next_step()
             self._check_finite()
