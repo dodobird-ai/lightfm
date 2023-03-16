@@ -697,7 +697,6 @@ class LightFM(object):
                 
                 for eval_name, eval_func in epoch_eval_funcs.items():
                     if epoch % round(epochs * 0.1) == 0: 
-                        print(f'Computating Evaluation Score for: {eval_name}: Takes Some Time')
                         avg_eval_score = eval_func(self, 
                                                test_interactions=interactions, 
                                                train_interactions=None, 
