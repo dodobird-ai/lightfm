@@ -716,8 +716,8 @@ class LightFM(object):
 
                 # TODO Store Model
 
-            dvc_live.next_step()
-            self._check_finite()
+                dvc_live.next_step()
+                self._check_finite()
 
         return self
 
