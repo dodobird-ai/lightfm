@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import numpy as np
+import multiprocessing
 
 # from omegaconf import OmegaConf
 from dvclive import Live
@@ -691,11 +692,11 @@ class LightFM(object):
                     self.loss,
                 )
 
-                epoch_loss = self.avg_loss[-1]
+                epoch_loss = self.avg_loss[-1] # monkey-patched attribute
                 dvc_live.log_metric('loss', epoch_loss)
                 print(f"Epoch n. {epoch} loss = {epoch_loss}")
                 
-                if self.eval_in_training_loop:
+                if self.eval_in_training_loop: # monkey-patched attribute
                     for eval_name, eval_func in epoch_eval_funcs.items():
                         if epoch % max(round(epochs * 0.1), 1) == 0: 
                             avg_eval_score = eval_func(self, 
@@ -704,7 +705,7 @@ class LightFM(object):
                                                    user_features=user_features, 
                                                    item_features=item_features, 
                                                    preserve_rows=False, 
-                                                   num_threads=4,  # MARC hardcode... trying to see if it also poses reproducibility problems... 
+                                                   num_threads=self.num_threads_eval, # monkey-patched attribute
                                                    check_intersections=True)\
                                                 .mean()
 
