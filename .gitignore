@@ -22,3 +22,5 @@ lightfm/_lightfm_fast_no_openmp.pyx
 .vscode/
 .idea/
 .devcontainer/
+
+**/.DS_Store
