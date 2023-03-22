@@ -668,57 +668,17 @@ class LightFM(object):
         if num_threads < 1:
             raise ValueError("Number of threads must be 1 or larger.")
         
-        epoch_eval_funcs = {
-            'auc': auc_score,
-            'p@k': precision_at_k, 
-            'r@k': recall_at_k
-        }
-        
-        inputs_files = ['train.pkl', 'train_weights.pkl', 'dataset.pkl']
-        inputs_dir = Path('data/pipeline_only/04-processed')
+        for epoch in self._progress(epochs, verbose=verbose):
+            self._run_epoch(
+                item_features,
+                user_features,
+                interactions,
+                sample_weight_data,
+                num_threads,
+                self.loss,
+            )
 
-        data_for_eval = load_eval_data(inputs_files, inputs_dir)
-        metrics = {}
-
-        with Live() as dvc_live:
-
-            for epoch in self._progress(epochs, verbose=verbose):
-                self._run_epoch(
-                    item_features,
-                    user_features,
-                    interactions,
-                    sample_weight_data,
-                    num_threads,
-                    self.loss,
-                )
-
-                epoch_loss = self.avg_loss[-1] # monkey-patched attribute
-                dvc_live.log_metric('loss', epoch_loss)
-                print(f"Epoch n. {epoch} loss = {epoch_loss}")
-                
-                if self.eval_in_training_loop: # monkey-patched attribute
-                    for eval_name, eval_func in epoch_eval_funcs.items():
-                        if epoch % max(round(epochs * 0.1), 1) == 0: 
-                            avg_eval_score = eval_func(self, 
-                                                   test_interactions=interactions, 
-                                                   train_interactions=None, 
-                                                   user_features=user_features, 
-                                                   item_features=item_features, 
-                                                   preserve_rows=False, 
-                                                   num_threads=self.num_threads_eval, # monkey-patched attribute
-                                                   check_intersections=True)\
-                                                .mean()
-
-                            metrics[eval_name] = avg_eval_score
-                            print(f"Epoch n. {epoch} {eval_name} = {avg_eval_score}")
-                        else: 
-                            avg_eval_score = metrics[eval_name] # keep as previous, so that dvc_live steps are aligned to epochs but without excessive computations
-                        dvc_live.log_metric(eval_name, avg_eval_score)
-
-                # TODO Store Model
-
-                dvc_live.next_step()
-                self._check_finite()
+            self._check_finite()
 
         return self
 
