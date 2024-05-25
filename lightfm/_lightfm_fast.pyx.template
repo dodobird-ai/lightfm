@@ -582,8 +582,22 @@ cdef void warp_update(double loss,
     freeze_item_embeddings = os.environ['FREEZE_ITEM_EMBEDDINGS'].lower() in ['true', 't', '1']
     freeze_item_biases = os.environ['FREEZE_ITEM_BIASES'].lower() in ['true', 't', '1']
 
+    print('*' * 50)
+    print('*' * 50)
+    print("Checking in Env. Vars. if Items Embeddings &|or Biases shall be 'frozen' or learnt")
+    print(f"{freeze_item_biases=}")
+    print(f"{freeze_item_embeddings=}")
+    print('*' * 50)
+    print('*' * 50)
+
 
     if not freeze_item_biases:
+        print('*' * 50)
+        print('*' * 50)
+        print("Learning Item Biases")
+        print('*' * 50)
+        print('*' * 50)
+
         avg_learning_rate += update_biases(item_features, positive_item_start_index,
                                            positive_item_stop_index,
                                            lightfm.item_biases, lightfm.item_bias_gradients,
@@ -624,6 +638,12 @@ cdef void warp_update(double loss,
         negative_item_component = neg_it_repr[i]
 
         if not freeze_item_embeddings:
+
+            print('*' * 50)
+            print('*' * 50)
+            print("Learning Item Embeddings")
+            print('*' * 50)
+            print('*' * 50)
 
             avg_learning_rate += update_features(item_features, lightfm.item_features,
                                                  lightfm.item_feature_gradients,
