@@ -1,6 +1,6 @@
 #!python
 #cython: boundscheck=False, wraparound=False, cdivision=True, initializedcheck=False
-
+import os
 import numpy as np
 
 cimport cython.operator.dereference as deref
@@ -577,26 +577,36 @@ cdef void warp_update(double loss,
     user_start_index = user_features.get_row_start(user_id)
     user_stop_index = user_features.get_row_end(user_id)
 
-    avg_learning_rate += update_biases(item_features, positive_item_start_index,
-                                       positive_item_stop_index,
-                                       lightfm.item_biases, lightfm.item_bias_gradients,
-                                       lightfm.item_bias_momentum,
-                                       -loss,
-                                       lightfm.adadelta,
-                                       lightfm.learning_rate,
-                                       item_alpha,
-                                       lightfm.rho,
-                                       lightfm.eps)
-    avg_learning_rate += update_biases(item_features, negative_item_start_index,
-                                       negative_item_stop_index,
-                                       lightfm.item_biases, lightfm.item_bias_gradients,
-                                       lightfm.item_bias_momentum,
-                                       loss,
-                                       lightfm.adadelta,
-                                       lightfm.learning_rate,
-                                       item_alpha,
-                                       lightfm.rho,
-                                       lightfm.eps)
+    with gil:
+        freeze_item_biases = os.environ.get('freeze_item_biases', 'false').lower() in ['true', '1', 't']
+        freeze_item_embeddings = os.environ.get('freeze_item_embeddings', 'false').lower() in ['true', '1', 't']
+        print("freeze_item_embeddings={{}}".format(freeze_item_embeddings))
+        print("freeze_item_biases={{}}".format(freeze_item_biases))
+
+    if not freeze_item_biases:
+
+        avg_learning_rate += update_biases(item_features, positive_item_start_index,
+                                           positive_item_stop_index,
+                                           lightfm.item_biases, lightfm.item_bias_gradients,
+                                           lightfm.item_bias_momentum,
+                                           -loss,
+                                           lightfm.adadelta,
+                                           lightfm.learning_rate,
+                                           item_alpha,
+                                           lightfm.rho,
+                                           lightfm.eps)
+
+        avg_learning_rate += update_biases(item_features, negative_item_start_index,
+                                           negative_item_stop_index,
+                                           lightfm.item_biases, lightfm.item_bias_gradients,
+                                           lightfm.item_bias_momentum,
+                                           loss,
+                                           lightfm.adadelta,
+                                           lightfm.learning_rate,
+                                           item_alpha,
+                                           lightfm.rho,
+                                           lightfm.eps)
+
     avg_learning_rate += update_biases(user_features, user_start_index, user_stop_index,
                                        lightfm.user_biases, lightfm.user_bias_gradients,
                                        lightfm.user_bias_momentum,
@@ -614,26 +624,30 @@ cdef void warp_update(double loss,
         positive_item_component = pos_it_repr[i]
         negative_item_component = neg_it_repr[i]
 
-        avg_learning_rate += update_features(item_features, lightfm.item_features,
-                                             lightfm.item_feature_gradients,
-                                             lightfm.item_feature_momentum,
-                                             i, positive_item_start_index, positive_item_stop_index,
-                                             -loss * user_component,
-                                             lightfm.adadelta,
-                                             lightfm.learning_rate,
-                                             item_alpha,
-                                             lightfm.rho,
-                                             lightfm.eps)
-        avg_learning_rate += update_features(item_features, lightfm.item_features,
-                                             lightfm.item_feature_gradients,
-                                             lightfm.item_feature_momentum,
-                                             i, negative_item_start_index, negative_item_stop_index,
-                                             loss * user_component,
-                                             lightfm.adadelta,
-                                             lightfm.learning_rate,
-                                             item_alpha,
-                                             lightfm.rho,
-                                             lightfm.eps)
+        if not freeze_item_embeddings:
+
+            avg_learning_rate += update_features(item_features, lightfm.item_features,
+                                                 lightfm.item_feature_gradients,
+                                                 lightfm.item_feature_momentum,
+                                                 i, positive_item_start_index, positive_item_stop_index,
+                                                 -loss * user_component,
+                                                 lightfm.adadelta,
+                                                 lightfm.learning_rate,
+                                                 item_alpha,
+                                                 lightfm.rho,
+                                                 lightfm.eps)
+
+            avg_learning_rate += update_features(item_features, lightfm.item_features,
+                                                 lightfm.item_feature_gradients,
+                                                 lightfm.item_feature_momentum,
+                                                 i, negative_item_start_index, negative_item_stop_index,
+                                                 loss * user_component,
+                                                 lightfm.adadelta,
+                                                 lightfm.learning_rate,
+                                                 item_alpha,
+                                                 lightfm.rho,
+                                                 lightfm.eps)
+
         avg_learning_rate += update_features(user_features, lightfm.user_features,
                                              lightfm.user_feature_gradients,
                                              lightfm.user_feature_momentum,

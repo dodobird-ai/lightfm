@@ -564,10 +564,6 @@ cdef void warp_update(double loss,
     cdef double avg_learning_rate
     cdef flt positive_item_component, negative_item_component, user_component
 
-    # MARC's Adds
-    cdef bint freeze_item_biases
-    cdef bint freeze_item_embeddings
-
     avg_learning_rate = 0.0
 
     # Get the iteration ranges for features
@@ -580,7 +576,6 @@ cdef void warp_update(double loss,
 
     user_start_index = user_features.get_row_start(user_id)
     user_stop_index = user_features.get_row_end(user_id)
-
 
     with gil:
         freeze_item_biases = os.environ.get('freeze_item_biases', 'false').lower() in ['true', '1', 't']
@@ -630,6 +625,7 @@ cdef void warp_update(double loss,
         negative_item_component = neg_it_repr[i]
 
         if not freeze_item_embeddings:
+
             avg_learning_rate += update_features(item_features, lightfm.item_features,
                                                  lightfm.item_feature_gradients,
                                                  lightfm.item_feature_momentum,
