@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 cimport cython.operator.dereference as deref
-from libc.stdlib cimport free, malloc, abort
+from libc.stdlib cimport free, malloc
 
 {openmp_import}
 
@@ -578,15 +578,10 @@ cdef void warp_update(double loss,
     user_stop_index = user_features.get_row_end(user_id)
 
     with gil:
-
-        if 'FREEZE_ITEM_BIASES' not in os.environ and 'FREEZE_ITEM_EMBEDDINGS' not in os.environ:
-            abort()
-
-        freeze_item_biases = os.environ['FREEZE_ITEM_BIASES'].strip().lower() in ['true', '1', 't']
-        freeze_item_embeddings = os.environ['FREEZE_ITEM_EMBEDDINGS'].strip().lower() in ['true', '1', 't']
+        freeze_item_biases = os.environ.get('FREEZE_ITEM_BIASES', 'false').strip().lower() in ['true', '1', 't']
+        freeze_item_embeddings = os.environ.get('FREEZE_ITEM_EMBEDDINGS', 'false').strip().lower() in ['true', '1', 't']
         # print("freeze_item_embeddings={{}}".format(freeze_item_embeddings))
         # print("freeze_item_biases={{}}".format(freeze_item_biases))
-
 
     if not freeze_item_biases:
 
