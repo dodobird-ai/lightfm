@@ -579,11 +579,11 @@ cdef void warp_update(double loss,
 
     with gil:
 
-        if 'freeze_item_biases' not in os.environ and 'freeze_item_embeddings' not in os.environ:
+        if 'FREEZE_ITEM_BIASES' not in os.environ and 'FREEZE_ITEM_EMBEDDINGS' not in os.environ:
             abort()
 
-        freeze_item_biases = os.environ['freeze_item_biases'].strip().lower() in ['true', '1', 't']
-        freeze_item_embeddings = os.environ['freeze_item_embeddings'].strip().lower() in ['true', '1', 't']
+        freeze_item_biases = os.environ['FREEZE_ITEM_BIASES'].strip().lower() in ['true', '1', 't']
+        freeze_item_embeddings = os.environ['FREEZE_ITEM_EMBEDDINGS'].strip().lower() in ['true', '1', 't']
         # print("freeze_item_embeddings={{}}".format(freeze_item_embeddings))
         # print("freeze_item_biases={{}}".format(freeze_item_biases))
 
