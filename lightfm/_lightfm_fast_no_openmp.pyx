@@ -578,8 +578,8 @@ cdef void warp_update(double loss,
     user_stop_index = user_features.get_row_end(user_id)
 
     with gil:
-        freeze_item_biases = os.environ['freeze_item_biases'].strip().lower() in ['true', '1', 't']
-        freeze_item_embeddings = os.environ['freeze_item_embeddings'].strip().lower() in ['true', '1', 't']
+        freeze_item_biases = os.environ.get('FREEZE_ITEM_BIASES', 'false').strip().lower() in ['true', '1', 't']
+        freeze_item_embeddings = os.environ.get('FREEZE_ITEM_EMBEDDINGS', 'false').strip().lower() in ['true', '1', 't']
         # print("freeze_item_embeddings={}".format(freeze_item_embeddings))
         # print("freeze_item_biases={}".format(freeze_item_biases))
 
