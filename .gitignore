@@ -24,3 +24,4 @@ lightfm/_lightfm_fast_no_openmp.pyx
 .devcontainer/
 
 **/.DS_Store
+.venv
