@@ -580,8 +580,8 @@ cdef void warp_update(double loss,
     with gil:
         freeze_item_biases = os.environ.get('FREEZE_ITEM_BIASES', 'false').strip().lower() in ['true', '1', 't']
         freeze_item_embeddings = os.environ.get('FREEZE_ITEM_EMBEDDINGS', 'false').strip().lower() in ['true', '1', 't']
-        # print("freeze_item_embeddings={}".format(freeze_item_embeddings))
-        # print("freeze_item_biases={}".format(freeze_item_biases))
+        freeze_user_biases = os.environ.get('FREEZE_USER_BIASES', 'false').strip().lower() in ['true', '1', 't']
+        freeze_user_embeddings = os.environ.get('FREEZE_USER_EMBEDDINGS', 'false').strip().lower() in ['true', '1', 't']
 
     if not freeze_item_biases:
 
@@ -606,16 +606,17 @@ cdef void warp_update(double loss,
                                            item_alpha,
                                            lightfm.rho,
                                            lightfm.eps)
+    if not freeze_user_biases:
 
-    avg_learning_rate += update_biases(user_features, user_start_index, user_stop_index,
-                                       lightfm.user_biases, lightfm.user_bias_gradients,
-                                       lightfm.user_bias_momentum,
-                                       loss,
-                                       lightfm.adadelta,
-                                       lightfm.learning_rate,
-                                       user_alpha,
-                                       lightfm.rho,
-                                       lightfm.eps)
+        avg_learning_rate += update_biases(user_features, user_start_index, user_stop_index,
+                                           lightfm.user_biases, lightfm.user_bias_gradients,
+                                           lightfm.user_bias_momentum,
+                                           loss,
+                                           lightfm.adadelta,
+                                           lightfm.learning_rate,
+                                           user_alpha,
+                                           lightfm.rho,
+                                           lightfm.eps)
 
     # Update latent representations.
     for i in range(lightfm.no_components):
@@ -647,18 +648,19 @@ cdef void warp_update(double loss,
                                                  item_alpha,
                                                  lightfm.rho,
                                                  lightfm.eps)
+        if not freeze_user_embeddings:
 
-        avg_learning_rate += update_features(user_features, lightfm.user_features,
-                                             lightfm.user_feature_gradients,
-                                             lightfm.user_feature_momentum,
-                                             i, user_start_index, user_stop_index,
-                                             loss * (negative_item_component -
-                                                     positive_item_component),
-                                             lightfm.adadelta,
-                                             lightfm.learning_rate,
-                                             user_alpha,
-                                             lightfm.rho,
-                                             lightfm.eps)
+            avg_learning_rate += update_features(user_features, lightfm.user_features,
+                                                 lightfm.user_feature_gradients,
+                                                 lightfm.user_feature_momentum,
+                                                 i, user_start_index, user_stop_index,
+                                                 loss * (negative_item_component -
+                                                         positive_item_component),
+                                                 lightfm.adadelta,
+                                                 lightfm.learning_rate,
+                                                 user_alpha,
+                                                 lightfm.rho,
+                                                 lightfm.eps)
 
     avg_learning_rate /= ((lightfm.no_components + 1) * (user_stop_index - user_start_index)
                           + (lightfm.no_components + 1) *
